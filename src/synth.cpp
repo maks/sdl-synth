@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 #include "SDL2/SDL_audio.h"
 
+// #include "amy.h"
+
 const int SAMPLE_RATE = 44100;
 const int BUFFER_SIZE = 4096;
 
@@ -62,6 +64,9 @@ int main(int argc, char const *argv[])
     printf("Failed to open Audio Device: %s\n", SDL_GetError());
     return 1;
   }
+
+  // setup amy
+  // amy_start(/* cores= */ 1, /* reverb= */ 1, /* chorus= */ 1);
 
   SDL_PauseAudio(0);
 
