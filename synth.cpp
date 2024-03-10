@@ -8,16 +8,6 @@
 const int SAMPLE_RATE = 44100;
 const int BUFFER_SIZE = 4096;
 
-
-// oscillator oscillate(float rate, float volume) {
-//   oscillator o = {
-//       .current_step = 0,
-//       .volume = volume,
-//       .step_size = (2 * M_PI) / rate,
-//   };
-//   return o;
-// }
-
 void oscillator_callback(void *userdata, Uint8 *stream, int len) {
   assert(false);
 }
