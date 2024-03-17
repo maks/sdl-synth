@@ -9,9 +9,9 @@ const int BUFFER_SIZE = 1024;
 
 //=== PICO SYNTH
 
-#define SAMPLES 1024
+const int LUT_SIZE = 1024;
 
-Sint16 sine[SAMPLES] = {
+Sint16 sine[LUT_SIZE] = {
     0,      201,    402,    603,    804,    1005,   1206,   1406,   1607,
     1808,   2009,   2209,   2410,   2610,   2811,   3011,   3211,   3411,
     3611,   3811,   4011,   4210,   4409,   4608,   4807,   5006,   5205,
@@ -136,16 +136,30 @@ int filt[6] = {0, 0, 0, 0, 0, 0};
 u_char filt_state[6] = {0, 0, 0, 0, 0, 0};
 
 int playPtr = 0;
+static double phase_double = 0;
+static int phase_int;
 
 void generateWave(Uint8 *byte_stream) {
   int result = 0;
   Sint16 *s_byte_stream;
 
-  // // generate samples
+  double freq = 440; // get_pitch(d_note);
+  double phase_increment = (freq / SAMPLE_RATE) * LUT_SIZE;
+
+  // generate samples
   for (int i = playPtr; i < BUFFER_SIZE; i++) {
-    result = sine[playPtr];
+    phase_double += phase_increment;
+    phase_int = (int)phase_double;
+
+    if (phase_double >= LUT_SIZE) {
+      double diff = phase_double - LUT_SIZE;
+      phase_double = diff;
+      phase_int = (int)diff;
+    }
+
+    result = sine[phase_int];
     result *= 0.3; /* scale volume */
-    playPtr = (playPtr + 1) % SAMPLES;
+    playPtr = (playPtr + 1) % LUT_SIZE;
 
     /* cast buffer as 16bit signed int */
     s_byte_stream = (Sint16 *)byte_stream;
