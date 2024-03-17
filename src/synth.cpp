@@ -1,8 +1,9 @@
 #include <cstdio>
 #include <cassert>
 
-#include <SDL2/SDL.h>
 #include "SDL2/SDL_audio.h"
+#include "fixed.h"
+#include <SDL2/SDL.h>
 
 const int SAMPLE_RATE = 44100;
 const int BUFFER_SIZE = 1024;
@@ -135,44 +136,49 @@ Sint16 sine[LUT_SIZE] = {
 int filt[6] = {0, 0, 0, 0, 0, 0};
 u_char filt_state[6] = {0, 0, 0, 0, 0, 0};
 
-static float phase_float1 = 0;
-static float phase_float2 = 0;
-static float phase_float3 = 0;
+static int phase_float1 = 0;
+static int phase_float2 = 0;
+static int phase_float3 = 0;
 static int phase_int1;
 static int phase_int2;
 static int phase_int3;
 
-int generatePhaseSample(float phase_increment, float &phase_float,
-                        int &phase_int, float vol) {
+int generatePhaseSample(int phase_increment, int &phase_float, int &phase_int,
+                        float vol) {
   int result = 0;
   phase_float += phase_increment;
   phase_int = (int)phase_float;
 
-  if (phase_float >= LUT_SIZE) {
-    float diff = phase_float - LUT_SIZE;
+  if (phase_int >= LUT_SIZE) {
+    int diff = phase_float - LUT_SIZE;
     phase_float = diff;
     phase_int = (int)diff;
   }
 
   result = sine[phase_int];
-  result *= vol; /* scale volume */
-  return result;
+  auto result_fp = i2fp(result);
+  auto vol_fp = fl2fp(vol);
+  auto res_fp = fp_mul(result_fp, vol_fp);
+  return fp2i(res_fp);
 }
 
 void generateWaves(Uint8 *byte_stream) {
   Sint16 *s_byte_stream;
 
-  float freq1 = 440; // get_pitch(d_note);
-  float freq2 = freq1 * 2;
-  float freq3 = freq1 * 3;
+  // float phase_increment = ((float)freq1 / SAMPLE_RATE) * LUT_SIZE;
 
-  float phase_increment1 = (freq1 / SAMPLE_RATE) * LUT_SIZE;
-  float phase_increment2 = (freq2 / SAMPLE_RATE) * LUT_SIZE;
-  float phase_increment3 = (freq3 / SAMPLE_RATE) * LUT_SIZE;
+  // Harmonics of primary freq
+  int phase_increment1 = 10;
+  int phase_increment2 = 20;
+  int phase_increment3 = 30;
+
+  // float phase_increment1 = 10.2;
+  // float phase_increment2 = 20.4;
+  // float phase_increment3 = 30.6;
 
   float vol1 = 0.3;
-  float vol2 = 0.2;
-  float vol3 = 0.1;
+  float vol2 = 0.3;
+  float vol3 = 0.3;
 
   // generate samples
   for (int i = 0; i < BUFFER_SIZE; i++) {
