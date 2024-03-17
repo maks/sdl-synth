@@ -135,42 +135,66 @@ Sint16 sine[LUT_SIZE] = {
 int filt[6] = {0, 0, 0, 0, 0, 0};
 u_char filt_state[6] = {0, 0, 0, 0, 0, 0};
 
-int playPtr = 0;
-static double phase_double = 0;
-static int phase_int;
+static double phase_double1 = 0;
+static double phase_double2 = 0;
+static double phase_double3 = 0;
+static int phase_int1;
+static int phase_int2;
+static int phase_int3;
 
-void generateWave(Uint8 *byte_stream) {
+int generatePhaseSample(double phase_increment, double &phase_double,
+                        int &phase_int, double vol) {
   int result = 0;
+  phase_double += phase_increment;
+  phase_int = (int)phase_double;
+
+  if (phase_double >= LUT_SIZE) {
+    double diff = phase_double - LUT_SIZE;
+    phase_double = diff;
+    phase_int = (int)diff;
+  }
+
+  result = sine[phase_int];
+  result *= vol; /* scale volume */
+  return result;
+}
+
+void generateWaves(Uint8 *byte_stream) {
   Sint16 *s_byte_stream;
 
-  double freq = 440; // get_pitch(d_note);
-  double phase_increment = (freq / SAMPLE_RATE) * LUT_SIZE;
+  double freq1 = 440; // get_pitch(d_note);
+  double freq2 = freq1 * 2;
+  double freq3 = freq1 * 3;
+
+  double phase_increment1 = (freq1 / SAMPLE_RATE) * LUT_SIZE;
+  double phase_increment2 = (freq2 / SAMPLE_RATE) * LUT_SIZE;
+  double phase_increment3 = (freq3 / SAMPLE_RATE) * LUT_SIZE;
+
+  auto vol1 = 0.3;
+  auto vol2 = 0.2;
+  auto vol3 = 0.1;
 
   // generate samples
-  for (int i = playPtr; i < BUFFER_SIZE; i++) {
-    phase_double += phase_increment;
-    phase_int = (int)phase_double;
+  for (int i = 0; i < BUFFER_SIZE; i++) {
+    int result1 =
+        generatePhaseSample(phase_increment1, phase_double1, phase_int1, vol1);
 
-    if (phase_double >= LUT_SIZE) {
-      double diff = phase_double - LUT_SIZE;
-      phase_double = diff;
-      phase_int = (int)diff;
-    }
+    int result2 =
+        generatePhaseSample(phase_increment2, phase_double2, phase_int2, vol2);
 
-    result = sine[phase_int];
-    result *= 0.3; /* scale volume */
-    playPtr = (playPtr + 1) % LUT_SIZE;
+    int result3 =
+        generatePhaseSample(phase_increment3, phase_double3, phase_int3, vol3);
 
     /* cast buffer as 16bit signed int */
     s_byte_stream = (Sint16 *)byte_stream;
-    s_byte_stream[i] = result;
+    s_byte_stream[i] = result1 + result2 + result3;
   }
 }
 
 //=== PICO SYNTH
 
 void oscillator_callback(void *userdata, Uint8 *byteStream, int len) {
-  generateWave(byteStream);
+  generateWaves(byteStream);
 }
 
 int main(int argc, char const *argv[])
