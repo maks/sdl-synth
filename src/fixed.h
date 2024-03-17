@@ -3,7 +3,7 @@
 #ifndef _FIXED_H
 #define _FIXED_H
 
-#define USE_FIXED_POINT
+#define USE_FIXED_POINT 1
 
 #ifdef USE_FIXED_POINT
 

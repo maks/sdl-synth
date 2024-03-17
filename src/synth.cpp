@@ -140,7 +140,7 @@ static int phase_int1 = 0;
 static int phase_int2 = 0;
 static int phase_int3 = 0;
 
-int generatePhaseSample(int phase_increment, int &phase_int, float vol) {
+int generatePhaseSample(int phase_increment, int &phase_int, int vol) {
   int result = 0;
   phase_int += phase_increment;
 
@@ -150,29 +150,30 @@ int generatePhaseSample(int phase_increment, int &phase_int, float vol) {
   }
 
   result = sine[phase_int];
-  auto result_fp = i2fp(result);
-  auto vol_fp = fl2fp(vol);
-  auto res_fp = fp_mul(result_fp, vol_fp);
+  int result_fp = i2fp(result);
+  auto res_fp = fp_mul(result_fp, vol);
   return fp2i(res_fp);
 }
 
 void generateWaves(Uint8 *byte_stream) {
   Sint16 *s_byte_stream;
 
-  // float phase_increment = ((float)freq1 / SAMPLE_RATE) * LUT_SIZE;
+  // phase_increment = ((float)freq1 / SAMPLE_RATE) * LUT_SIZE;
   // actual values:
-  // float phase_increment1 = 10.2;
-  // float phase_increment2 = 20.4;
-  // float phase_increment3 = 30.6;
+  // phase_increment1 = 10.2;
+  // phase_increment2 = 20.4;
+  // phase_increment3 = 30.6;
 
   // Harmonics of primary freq
   int phase_increment1 = 10;
   int phase_increment2 = 20;
   int phase_increment3 = 30;
 
-  float vol1 = 0.3;
-  float vol2 = 0.3;
-  float vol3 = 0.3;
+  // range 10 - 13000
+  int vol = 13110;
+  int vol1 = vol;
+  int vol2 = vol;
+  int vol3 = vol;
 
   // generate samples
   for (int i = 0; i < BUFFER_SIZE; i++) {
