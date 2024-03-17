@@ -10,6 +10,7 @@ const int BUFFER_SIZE = 1024;
 
 //=== PICO SYNTH
 
+const int HARMONICS = 6;
 const int LUT_SIZE = 1024;
 
 Sint16 sine[LUT_SIZE] = {
@@ -133,15 +134,9 @@ Sint16 sine[LUT_SIZE] = {
  * The current envelope settings. This represents the volume of the harmonic,
  * and the state it is in.
  */
-int filt[6] = {0, 0, 0, 0, 0, 0};
-u_char filt_state[6] = {0, 0, 0, 0, 0, 0};
-
-static int phase_int1 = 0;
-static int phase_int2 = 0;
-static int phase_int3 = 0;
-static int phase_int4 = 0;
-static int phase_int5 = 0;
-static int phase_int6 = 0;
+int filt[HARMONICS] = {0, 0, 0, 0, 0, 0};
+u_char filt_state[HARMONICS] = {0, 0, 0, 0, 0, 0};
+int phase_int[HARMONICS] = {0, 0, 0, 0, 0, 0};
 
 int generatePhaseSample(int phase_increment, int &phase_int, int vol) {
   int result = 0;
@@ -168,43 +163,25 @@ void generateWaves(Uint8 *byte_stream) {
   // phase_increment3 = 30.6;
 
   // Harmonics of primary freq
-  int phase_increment1 = 10;
-  int phase_increment2 = 20;
-  int phase_increment3 = 30;
-  int phase_increment4 = 40;
-  int phase_increment5 = 50;
-  int phase_increment6 = 60;
+  int phase_increment[HARMONICS] = {10, 20, 30, 40, 50, 60};
 
   // max <42000 across all harmonics
-  int vol = 6900;
-  int vol1 = vol;
-  int vol2 = vol;
-  int vol3 = vol;
-  int vol4 = vol;
-  int vol5 = vol;
-  int vol6 = vol;
+  int volume[HARMONICS] = {5000, 5000, 5000, 5000, 5000, 5000};
+
+  /* cast buffer as 16bit signed int */
+  s_byte_stream = (Sint16 *)byte_stream;
 
   // generate samples
   for (int i = 0; i < BUFFER_SIZE; i++) {
-    int result1 = generatePhaseSample(phase_increment1, phase_int1, vol1);
-
-    int result2 = generatePhaseSample(phase_increment2, phase_int2, vol2);
-
-    int result3 = generatePhaseSample(phase_increment3, phase_int3, vol3);
-
-    int result4 = generatePhaseSample(phase_increment4, phase_int4, vol4);
-
-    int result5 = generatePhaseSample(phase_increment5, phase_int5, vol5);
-
-    int result6 = generatePhaseSample(phase_increment6, phase_int6, vol6);
-
-    /* cast buffer as 16bit signed int */
-    s_byte_stream = (Sint16 *)byte_stream;
-    s_byte_stream[i] =
-        result1 + result2 + result3 + result4 + result5 + result6;
+    int fullResult = 0;
+    for (int h = 0; h < HARMONICS; h++) {
+      fullResult +=
+          generatePhaseSample(phase_increment[h], phase_int[h], volume[h]);
+    }
+    // write sum of all harmonics into audio buffer
+    s_byte_stream[i] = fullResult;
   }
 }
-
 //=== PICO SYNTH
 
 void oscillator_callback(void *userdata, Uint8 *byteStream, int len) {
