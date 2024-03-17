@@ -14,29 +14,12 @@ add_executable(sdlsynth
     synth.cpp
 )
 
-add_executable(sdlsynth2
-    synth2.cpp
-)
-
 add_executable(lut
     lut.cpp
 )
 
 
-add_executable(synthex
-    synthex.cpp
-)
-
-target_link_libraries(synthex 
-    PUBLIC ${SDL2_LIBRARIES} 
-)
-
 target_link_libraries(sdlsynth 
     PUBLIC ${SDL2_LIBRARIES} 
 )
 
-
-target_link_libraries(sdlsynth2 
-    # PUBLIC amy
-    PUBLIC ${SDL2_LIBRARIES} 
-)
