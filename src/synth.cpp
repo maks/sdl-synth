@@ -136,23 +136,17 @@ Sint16 sine[LUT_SIZE] = {
 int filt[6] = {0, 0, 0, 0, 0, 0};
 u_char filt_state[6] = {0, 0, 0, 0, 0, 0};
 
-static int phase_float1 = 0;
-static int phase_float2 = 0;
-static int phase_float3 = 0;
-static int phase_int1;
-static int phase_int2;
-static int phase_int3;
+static int phase_int1 = 0;
+static int phase_int2 = 0;
+static int phase_int3 = 0;
 
-int generatePhaseSample(int phase_increment, int &phase_float, int &phase_int,
-                        float vol) {
+int generatePhaseSample(int phase_increment, int &phase_int, float vol) {
   int result = 0;
-  phase_float += phase_increment;
-  phase_int = (int)phase_float;
+  phase_int += phase_increment;
 
   if (phase_int >= LUT_SIZE) {
-    int diff = phase_float - LUT_SIZE;
-    phase_float = diff;
-    phase_int = (int)diff;
+    int diff = phase_int - LUT_SIZE;
+    phase_int = diff;
   }
 
   result = sine[phase_int];
@@ -166,15 +160,15 @@ void generateWaves(Uint8 *byte_stream) {
   Sint16 *s_byte_stream;
 
   // float phase_increment = ((float)freq1 / SAMPLE_RATE) * LUT_SIZE;
+  // actual values:
+  // float phase_increment1 = 10.2;
+  // float phase_increment2 = 20.4;
+  // float phase_increment3 = 30.6;
 
   // Harmonics of primary freq
   int phase_increment1 = 10;
   int phase_increment2 = 20;
   int phase_increment3 = 30;
-
-  // float phase_increment1 = 10.2;
-  // float phase_increment2 = 20.4;
-  // float phase_increment3 = 30.6;
 
   float vol1 = 0.3;
   float vol2 = 0.3;
@@ -182,14 +176,11 @@ void generateWaves(Uint8 *byte_stream) {
 
   // generate samples
   for (int i = 0; i < BUFFER_SIZE; i++) {
-    int result1 =
-        generatePhaseSample(phase_increment1, phase_float1, phase_int1, vol1);
+    int result1 = generatePhaseSample(phase_increment1, phase_int1, vol1);
 
-    int result2 =
-        generatePhaseSample(phase_increment2, phase_float2, phase_int2, vol2);
+    int result2 = generatePhaseSample(phase_increment2, phase_int2, vol2);
 
-    int result3 =
-        generatePhaseSample(phase_increment3, phase_float3, phase_int3, vol3);
+    int result3 = generatePhaseSample(phase_increment3, phase_int3, vol3);
 
     /* cast buffer as 16bit signed int */
     s_byte_stream = (Sint16 *)byte_stream;
