@@ -139,6 +139,9 @@ u_char filt_state[6] = {0, 0, 0, 0, 0, 0};
 static int phase_int1 = 0;
 static int phase_int2 = 0;
 static int phase_int3 = 0;
+static int phase_int4 = 0;
+static int phase_int5 = 0;
+static int phase_int6 = 0;
 
 int generatePhaseSample(int phase_increment, int &phase_int, int vol) {
   int result = 0;
@@ -168,12 +171,18 @@ void generateWaves(Uint8 *byte_stream) {
   int phase_increment1 = 10;
   int phase_increment2 = 20;
   int phase_increment3 = 30;
+  int phase_increment4 = 40;
+  int phase_increment5 = 50;
+  int phase_increment6 = 60;
 
-  // range 10 - 13000
-  int vol = 13110;
+  // max <42000 across all harmonics
+  int vol = 6900;
   int vol1 = vol;
   int vol2 = vol;
   int vol3 = vol;
+  int vol4 = vol;
+  int vol5 = vol;
+  int vol6 = vol;
 
   // generate samples
   for (int i = 0; i < BUFFER_SIZE; i++) {
@@ -183,9 +192,16 @@ void generateWaves(Uint8 *byte_stream) {
 
     int result3 = generatePhaseSample(phase_increment3, phase_int3, vol3);
 
+    int result4 = generatePhaseSample(phase_increment4, phase_int4, vol4);
+
+    int result5 = generatePhaseSample(phase_increment5, phase_int5, vol5);
+
+    int result6 = generatePhaseSample(phase_increment6, phase_int6, vol6);
+
     /* cast buffer as 16bit signed int */
     s_byte_stream = (Sint16 *)byte_stream;
-    s_byte_stream[i] = result1 + result2 + result3;
+    s_byte_stream[i] =
+        result1 + result2 + result3 + result4 + result5 + result6;
   }
 }
 
