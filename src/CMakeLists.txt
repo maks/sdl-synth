@@ -12,6 +12,7 @@ include_directories(${SDL2_INCLUDE_DIRS})
 
 add_executable(sdlsynth
     synth.cpp
+    ADSR.cpp
 )
 
 add_executable(lut

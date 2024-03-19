@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cassert>
 
+#include "ADSR.h"
 #include "SDL2/SDL_audio.h"
 #include "fixed.h"
 #include <SDL2/SDL.h>
@@ -31,12 +32,23 @@ Sint16 sine[LUT_SIZE] = {
 };
 
 /*
+ * The current wave and env settings. Dont define here to save space.
+ */
+uint16_t env[HARMONICS][5];
+char wave[HARMONICS][2];
+
+/*
  * The current envelope settings. This represents the volume of the harmonic,
  * and the state it is in.
  */
 int filt[HARMONICS] = {0, 0, 0, 0, 0, 0};
 u_char filt_state[HARMONICS] = {0, 0, 0, 0, 0, 0};
+
 float phase_int[HARMONICS] = {0, 0, 0, 0, 0, 0};
+
+ADSR adsr[HARMONICS] = {ADSR(), ADSR(), ADSR(), ADSR(), ADSR(), ADSR()};
+
+u_char gate = 0;
 
 int generatePhaseSample(float phase_increment, float &phase_index, int vol) {
   int result = 0;
@@ -79,9 +91,6 @@ void generateWaves(Uint8 *byte_stream) {
       4 * baseNoteFreq, 5 * baseNoteFreq, 6 * baseNoteFreq,
   };
 
-  // max 42038 across all harmonics
-  int volume[HARMONICS] = {3000, 3000, 3000, 3000, 3000, 3000};
-
   /* cast buffer as 16bit signed int */
   s_byte_stream = (Sint16 *)byte_stream;
 
@@ -90,16 +99,180 @@ void generateWaves(Uint8 *byte_stream) {
     int fullResult = 0;
     for (int h = 0; h < HARMONICS; h++) {
       fullResult +=
-          generatePhaseSample(phase_increment[h], phase_int[h], volume[h]);
+          generatePhaseSample(phase_increment[h], phase_int[h], filt[h]);
     }
     // write sum of all harmonics into audio buffer
     s_byte_stream[i] = fullResult;
   }
 }
-//=== PICO SYNTH
 
+void update_envelopes() {
+  //
+  for (int h = 0; h < HARMONICS; h++) {
+    filt[h] = (adsr[h].process() * 5000);
+  }
+}
+
+const int CONTROL_RATE = SAMPLE_RATE / 256;
+void set_defaults() {
+  // initialize settings
+  for (int h = 0; h < HARMONICS; h++) {
+    adsr[h].setAttackRate(.3 * CONTROL_RATE); // .1 second
+    adsr[h].setDecayRate(.3 * CONTROL_RATE);
+    adsr[h].setReleaseRate(1 * CONTROL_RATE);
+    adsr[h].setSustainLevel(.8);
+  }
+}
+
+void adsr_gate(bool on) {
+  for (int h = 0; h < HARMONICS; h++) {
+    adsr[h].gate(on);
+  }
+}
+
+/*
+ * Called every ~10ms, this updates the individual harmonic volumes in line with
+ * their Envelope. There are 4 envelope types. These are ADSR, delayed ADSR,
+ * AD repeat and delayed AD repeat. The delayed envelope waits to go into the
+ * decay phase until all active oscillators have finished their attack phase.
+ *
+ * State 0 => attack
+ * State 1 => delay
+ * State 2 => decay
+ * State 3 => sustain
+ * State 4 => release
+ * State 5 => note off
+ *
+ * A standard adsr will go, states: 0, 2, 3, 4, 5
+ */
+// void update_envelopes() {
+//   u_char finished = 0;
+//   u_char playing = 6;
+//   int attack, decay, level, sustain, rel;
+//   u_char etype;
+//   u_char tremolo = 1;
+
+//   /*
+//    * Work out which notes are still playing, and which have
+//    * finished their attack phase. Repeating envelopes don't
+//    * count towards a playing note as they repeat indefinitely.
+//    */
+//   for (char i = 0; i < HARMONICS; i++) {
+//     if (env[i][0] < 2 && wave[i][0])
+//       // tremolo = 0;
+//       if (filt_state[i] > 0 || env[i][0] > 1) {
+//         finished++;
+//         if (filt_state[i] == 5 || env[i][0] > 1)
+//           playing--;
+//       }
+//   }
+
+//   /*
+//    * Loop through the oscillators, and set their filt value. The
+//    * filt value represents the current volume of the oscillator.
+//    */
+//   for (u_char i = 0; i < HARMONICS; i++) {
+//     level = ((int)wave[i][0]) << 8;
+//     if (level == 0) {
+//       filt_state[i] = 6;
+//       continue;
+//     }
+//     etype = (u_char)(env[i][0]);
+//     attack = env[i][1];
+//     decay = env[i][2];
+//     sustain = (level >> 8) * env[i][3];
+//     rel = env[i][4];
+//     switch (filt_state[i]) {
+//     case 0: // Attack
+//       filt[i] += attack;
+//       if (attack == 0 || filt[i] >= level) {
+//         filt[i] = level;
+//         filt_state[i] = (etype & 1) ? 1 : 2;
+//       }
+//       break;
+//     case 1: // Delay
+//       if (finished == 6)
+//         filt_state[i] = 2;
+//       else
+//         break;
+//     case 2: // Decay
+//       filt[i] -= decay;
+//       if (decay == 0 || filt[i] <= sustain) {
+//         filt[i] = sustain;
+//         if (etype > 1 && etype < 4) {
+//           if (playing || tremolo)
+//             filt_state[i] = 0;
+//           else
+//             filt_state[i] = 6;
+//         } else {
+//           filt_state[i] = 3;
+//         }
+//       }
+//       break;
+//     case 3: // Sustain stay here until told to release
+//       if (filt[i] == 0)
+//         filt_state[i] = 6;
+//       break;
+//     case 4: // Release
+//       if (etype == 4) {
+//         filt[i] += rel;
+//         if (rel == 0 || filt[i] >= level) {
+//           filt[i] = level;
+//           filt_state[i] = 5;
+//         }
+//       } else {
+//         filt[i] -= rel;
+//         if (rel == 0 || filt[i] <= 0) {
+//           filt[i] = 0;
+//           filt_state[i] = 6;
+//         }
+//       }
+//       break;
+//     case 5: // Reverse Release
+//       filt[i] -= decay;
+//       if (rel == 0 || filt[i] <= 0) {
+//         filt[i] = 0;
+//         filt_state[i] = 6;
+//       }
+//       break;
+//     default:       // Note off
+//       filt[i] = 0; // take care of repeating oscillators
+//       break;
+//     }
+//   }
+// }
+
+// void set_defaults() {
+//   memset(wave, 0, sizeof(wave));
+//   memset(env, 0, sizeof(env));
+//   // memset(lfo, 0, sizeof(lfo));
+//   // memset(special, 0, sizeof(special));
+
+//   /*
+//    * Simple sine wave, max vol, instant attack, max sustain, quick release
+//    */
+//   // wave[h][0] is oscillator amplitude
+//   wave[0][0] = 60;
+//   // env[h][0] is envelope type
+//   // env[h][1] is envelope attack
+//   // env[h][2] is envelope decay
+//   // env[h][3] is envelope sustain
+//   // env[h][4] is envelope release
+
+//   env[0][1] = 40;
+//   env[0][2] = 40;
+//   env[0][3] = 190;
+//   // env[0][2] = 240;
+//   env[0][3] = env[1][3] = env[2][3] = env[3][3] = env[4][3] = env[5][3] =
+//   255;
+// }
+
+//=== PICO SYNTH
+char callback_counter = 0;
 void oscillator_callback(void *userdata, Uint8 *byteStream, int len) {
+
   generateWaves(byteStream);
+  update_envelopes();
 }
 
 static void handle_note_keys(SDL_Keysym *keysym) {
@@ -176,6 +349,9 @@ int main(int argc, char const *argv[]) {
     printf("Opened Audio Device: %d\n", spec.format);
   }
 
+  // set picosynth defaults
+  set_defaults();
+
   SDL_PauseAudio(0);
 
   while (true) {
@@ -184,7 +360,12 @@ int main(int argc, char const *argv[]) {
       switch (e.type) {
       case SDL_KEYDOWN:
         handle_key_down(&e.key.keysym);
+        adsr_gate(true);
         printf("NOTE FREQ:%f\n", get_pitch(note));
+        break;
+      case SDL_KEYUP:
+        printf("STOP NOTE");
+        adsr_gate(false);
         break;
       case SDL_QUIT:
         printf("exiting...\n");
