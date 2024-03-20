@@ -75,16 +75,11 @@ int generatePhaseSample(float phase_increment, float &phase_index, int vol) {
   return fp2i(res_fp);
 }
 
-/*
-  Calculate pitch from note value.
-  offset note by 57 halfnotes to get correct pitch from the range we have chosen
-  for the notes.
-*/
-static const float chromatic_ratio = 1.059463094359295264562;
-static float get_pitch(double note) {
-  double p = pow(chromatic_ratio, note - 57);
-  p *= 440;
-  return p;
+// Calculate frequency from MIDI note value
+// ref: https://gist.github.com/YuxiUx/ef84328d95b10d0fcbf537de77b936cd
+static float noteToFreq(double note) {
+  float a = 440; // frequency of A (coomon value is 440Hz)
+  return (a / 32) * pow(2, ((note - 9) / 12.0));
 }
 
 void generateWaves(Uint8 *byte_stream) {
@@ -92,7 +87,7 @@ void generateWaves(Uint8 *byte_stream) {
 
   // get correct phase increment for note depending on sample rate and LUT
   // length.
-  float baseNoteFreq = (get_pitch(note) / SAMPLE_RATE) * LUT_SIZE;
+  float baseNoteFreq = (noteToFreq(note) / SAMPLE_RATE) * LUT_SIZE;
 
   // Harmonics of primary freq
   float phase_increment[HARMONICS] = {
@@ -300,16 +295,28 @@ static void handle_note_keys(SDL_Keysym *keysym) {
   int new_note = note;
   switch (keysym->sym) {
   case SDLK_a:
-    new_note = 34;
+    new_note = 57;
     break;
   case SDLK_s:
-    new_note = 37;
+    new_note = 58;
     break;
   case SDLK_d:
-    new_note = 41;
+    new_note = 59;
     break;
   case SDLK_f:
-    new_note = 49;
+    new_note = 60;
+    break;
+  case SDLK_g:
+    new_note = 61;
+    break;
+  case SDLK_h:
+    new_note = 62;
+    break;
+  case SDLK_j:
+    new_note = 63;
+    break;
+  case SDLK_k:
+    new_note = 64;
     break;
   }
   printf("new note:%d\n", new_note);
@@ -384,7 +391,7 @@ int main(int argc, char const *argv[]) {
           handle_key_down(&e.key.keysym);
           adsr_gate(true);
           env_gate(1);
-          printf("NOTE FREQ:%f\n", get_pitch(note));
+          printf("NOTE FREQ:%f\n", noteToFreq(note));
         }
         break;
       case SDL_KEYUP:
