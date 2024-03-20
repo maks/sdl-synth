@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <cassert>
 
-#include "ADSR.h"
 #include "SDL2/SDL_audio.h"
 #include "fixed.h"
 #include <SDL2/SDL.h>
@@ -55,8 +54,6 @@ u_char filt_state[HARMONICS] = {0, 0, 0, 0, 0, 0};
 
 float phase_int[HARMONICS] = {0, 0, 0, 0, 0, 0};
 
-ADSR adsr[HARMONICS] = {ADSR(), ADSR(), ADSR(), ADSR(), ADSR(), ADSR()};
-
 u_char gate = 0;
 
 int generatePhaseSample(float phase_increment, float &phase_index, int vol) {
@@ -78,7 +75,7 @@ int generatePhaseSample(float phase_increment, float &phase_index, int vol) {
 // Calculate frequency from MIDI note value
 // ref: https://gist.github.com/YuxiUx/ef84328d95b10d0fcbf537de77b936cd
 static float noteToFreq(double note) {
-  float a = 440; // frequency of A (coomon value is 440Hz)
+  float a = 440; // frequency of A4 (440Hz)
   return (a / 32) * pow(2, ((note - 9) / 12.0));
 }
 
@@ -110,25 +107,7 @@ void generateWaves(Uint8 *byte_stream) {
   }
 }
 
-void update_adsr() {
-  //
-  for (int h = 0; h < HARMONICS; h++) {
-    filt[h] = (adsr[h].process() * 5000);
-  }
-}
-
-const int CONTROL_RATE = SAMPLE_RATE / 256;
-void set_adsr_defaults() {
-  // initialize settings
-  for (int h = 0; h < HARMONICS; h++) {
-    adsr[h].setAttackRate(.3 * CONTROL_RATE); // .1 second
-    adsr[h].setDecayRate(.3 * CONTROL_RATE);
-    adsr[h].setReleaseRate(1 * CONTROL_RATE);
-    adsr[h].setSustainLevel(.8);
-  }
-}
-
-void env_gate(bool on) {
+void envelope_gate(bool on) {
   for (int h = 0; h < HARMONICS; h++) {
     filt_state[h] = on ? 0 : 4;
   }
@@ -160,13 +139,7 @@ void set_defaults() {
   wave[4][0] = 10000 / 5;
   wave[5][0] = 10000 / 6;
 
-  env_gate(0);
-}
-
-void adsr_gate(bool on) {
-  for (int h = 0; h < HARMONICS; h++) {
-    adsr[h].gate(on);
-  }
+  envelope_gate(0);
 }
 
 /*
@@ -389,15 +362,13 @@ int main(int argc, char const *argv[]) {
         // dont want key repeats
         if (e.key.repeat == 0) {
           handle_key_down(&e.key.keysym);
-          adsr_gate(true);
-          env_gate(1);
+          envelope_gate(1);
           printf("NOTE FREQ:%f\n", noteToFreq(note));
         }
         break;
       case SDL_KEYUP:
         printf("STOP NOTE");
-        adsr_gate(false);
-        env_gate(0);
+        envelope_gate(0);
         break;
       case SDL_QUIT:
         printf("exiting...\n");
