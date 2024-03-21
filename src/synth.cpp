@@ -7,15 +7,19 @@
 
 #include "picosynth/picosynth.h"
 
-void oscillator_callback(void *userdata, uint8_t *byteStream, int len) {
+const int BUFFER_SIZE = 1024;
 
-  generateWaves(byteStream);
-  update_envelopes();
+auto picoSynth = PicoSynth();
+
+char osc_callback_count = 0;
+
+void oscillator_callback(void *userdata, uint8_t *byteStream, int len) {
+  picoSynth.generateWaves(byteStream, BUFFER_SIZE);
 }
 
 static void handle_note_keys(SDL_Keysym *keysym) {
   /* change note or octave depending on which key is pressed */
-  int new_note = get_note();
+  int new_note = picoSynth.get_note();
   switch (keysym->sym) {
   case SDLK_a:
     new_note = 57;
@@ -42,8 +46,7 @@ static void handle_note_keys(SDL_Keysym *keysym) {
     new_note = 64;
     break;
   }
-  printf("new note:%d\n", new_note);
-  set_note(new_note);
+  picoSynth.set_note(new_note);
 }
 
 static void handle_key_down(SDL_Keysym *keysym) { handle_note_keys(keysym); }
@@ -100,7 +103,7 @@ int main(int argc, char const *argv[]) {
   }
 
   // set picosynth defaults
-  set_defaults();
+  picoSynth.set_defaults();
 
   SDL_PauseAudio(0);
 
@@ -112,13 +115,13 @@ int main(int argc, char const *argv[]) {
         // dont want key repeats
         if (e.key.repeat == 0) {
           handle_key_down(&e.key.keysym);
-          envelope_gate(1);
-          printf("NOTE FREQ:%f\n", noteToFreq(get_note()));
+          picoSynth.envelope_gate(1);
+          printf("PlAY NOTE FREQ:%f\n", noteToFreq(picoSynth.get_note()));
         }
         break;
       case SDL_KEYUP:
-        printf("STOP NOTE");
-        envelope_gate(0);
+        printf("STOP NOTE\n");
+        picoSynth.envelope_gate(0);
         break;
       case SDL_QUIT:
         printf("exiting...\n");

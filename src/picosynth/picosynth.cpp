@@ -2,11 +2,8 @@
 #include "fixed.h"
 #include "math.h"
 #include <cstdint>
+#include <stdio.h>
 #include <string.h>
-
-//=== PICO SYNTH
-const int HARMONICS = 6;
-const int LUT_SIZE = 100;
 
 int16_t sine[LUT_SIZE] = {
     0,      2057,   4106,   6139,   8148,   10125,  12062,  13951,  15785,
@@ -23,35 +20,8 @@ int16_t sine[LUT_SIZE] = {
     -2057,
 };
 
-// TODO: convert env & wave into arrays of structs
-
-// The current envelope settings
-// env[h][0] is envelope type
-// env[h][1] is envelope attack
-// env[h][2] is envelope decay
-// env[h][3] is envelope sustain
-// env[h][4] is envelope release
-uint16_t env[HARMONICS][5];
-
-// The current per harmonic wave settings
-// wave[h][0] is oscillator amplitude
-// wave[h][1] is initialise the phase (offset into the sine LUT) of the wave
-uint16_t wave[HARMONICS][2];
-
-/*
- * The current envelope settings. This represents the volume of the harmonic,
- * and the state it is in.
- */
-int filt[HARMONICS] = {0, 0, 0, 0, 0, 0};
-char filt_state[HARMONICS] = {0, 0, 0, 0, 0, 0};
-
-float phase_int[HARMONICS] = {0, 0, 0, 0, 0, 0};
-
-char gate = 0;
-
-int _note = 60; /* integer representing midi notes */
-
-int generatePhaseSample(float phase_increment, float &phase_index, int vol) {
+int PicoSynth::generatePhaseSample(float phase_increment, float &phase_index,
+                                   int vol) {
   int result = 0;
   phase_index = phase_index;
   phase_index += phase_increment;
@@ -74,8 +44,10 @@ float noteToFreq(char note) {
   return (a / 32) * pow(2, ((note - 9) / 12.0));
 }
 
-void generateWaves(uint8_t *byte_stream) {
+void PicoSynth::generateWaves(uint8_t *byte_stream, int len) {
   int16_t *s_byte_stream;
+
+  update_envelopes();
 
   // get correct phase increment for note depending on sample rate and LUT
   // length.
@@ -91,7 +63,8 @@ void generateWaves(uint8_t *byte_stream) {
   s_byte_stream = (int16_t *)byte_stream;
 
   // generate samples
-  for (int i = 0; i < BUFFER_SIZE; i++) {
+  for (int i = 0; i < len; i++) {
+
     int fullResult = 0;
     for (int h = 0; h < HARMONICS; h++) {
       fullResult +=
@@ -102,50 +75,55 @@ void generateWaves(uint8_t *byte_stream) {
   }
 }
 
-void envelope_gate(bool on) {
+void PicoSynth::envelope_gate(bool on) {
+  char state = on ? 0 : 4;
   for (int h = 0; h < HARMONICS; h++) {
-    filt_state[h] = on ? 0 : 4;
+    filt_state[h] = state;
   }
 }
 
-void set_note(char note) { _note = note; }
+void PicoSynth::set_note(char note) { _note = note; }
 
-char get_note() { return _note; }
+char PicoSynth::get_note() { return _note; }
 
-void set_defaults() {
+void PicoSynth::set_defaults() {
   memset(wave, 0, sizeof(wave));
   memset(env, 0, sizeof(env));
   // memset(lfo, 0, sizeof(lfo));
   // memset(special, 0, sizeof(special));
 
-  /*
-   * Simple sine wave, max vol, instant attack, max sustain, quick release
-   */
+  // Simple sine wave, max vol, instant attack, max sustain, quick release
+  // The current envelope settings
+  // env[h][0] is envelope type
+  // env[h][1] is envelope attack
+  // env[h][2] is envelope decay
+  // env[h][3] is envelope sustain
+  // env[h][4] is envelope release
 
-  env[0][0] = 1;
-  env[0][1] = 2500;
-  env[0][2] = 400;
-  env[0][3] = env[1][3] = env[2][3] = env[3][3] = env[4][3] = env[5][3] = 1200;
+  env[0][3] = env[1][3] = env[2][3] = env[3][3] = env[4][3] = env[5][3] = 3000;
 
   for (int h = 0; h < HARMONICS; h++) {
-    env[h][4] = 80;
+    env[h][1] = 1000;
+    env[h][4] = 100;
   }
   // sawtooth
-  wave[0][0] = 10000;
-  wave[1][0] = 10000 / 2;
-  wave[2][0] = 10000 / 3;
-  wave[3][0] = 10000 / 4;
-  wave[4][0] = 10000 / 5;
-  wave[5][0] = 10000 / 6;
+  int saw_vol = 5000;
+  wave[0][0] = saw_vol;
+  wave[1][0] = saw_vol / 2;
+  wave[2][0] = saw_vol / 3;
+  wave[3][0] = saw_vol / 4;
+  wave[4][0] = saw_vol / 5;
+  wave[5][0] = saw_vol / 6;
 
   envelope_gate(0);
 }
 
 /*
- * Called every ~10ms, this updates the individual harmonic volumes in line with
- * their Envelope. There are 4 envelope types. These are ADSR, delayed ADSR,
- * AD repeat and delayed AD repeat. The delayed envelope waits to go into the
- * decay phase until all active oscillators have finished their attack phase.
+ * Needs to be called regularly (eg every buffer fill), this updates the
+ * individual harmonic volumes in line with their Envelope. There are 4 envelope
+ * types. These are ADSR, delayed ADSR, AD repeat and delayed AD repeat. The
+ * delayed envelope waits to go into the decay phase until all active
+ * oscillators have finished their attack phase.
  *
  * State 0 => attack
  * State 1 => delay
@@ -156,7 +134,7 @@ void set_defaults() {
  *
  * A standard adsr will go, states: 0, 2, 3, 4, 5
  */
-void update_envelopes() {
+void PicoSynth::update_envelopes() {
   u_char finished = 0;
   u_char playing = HARMONICS;
   int attack, decay, level, sustain, rel;
@@ -232,8 +210,8 @@ void update_envelopes() {
           filt_state[i] = 5;
         }
       } else {
-        // printf("%dREL[%d] ", i, filt[i]);
-        filt[i] -= rel;
+        // printf("%dREL[%d]\n", i, filt[i]);
+        filt[i] -= (rel - filt[i]) > 0 ? (rel - filt[i]) : rel;
         if (rel == 0 || filt[i] <= 0) {
           filt[i] = 0;
           filt_state[i] = 6;
