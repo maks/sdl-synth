@@ -12,6 +12,16 @@ const int LUT_SIZE = 100;
 
 float noteToFreq(char note);
 
+struct picosynth_env {
+  char type;
+  int attack;
+  int decay;
+  int sustain;
+  int release;
+  int amplitude;
+  int phase;
+};
+
 class PicoSynth {
 public:
   PicoSynth() {}
@@ -29,20 +39,11 @@ public:
   char get_note();
 
 private:
-  // TODO: convert env & wave into arrays of structs
-
-  // The current envelope settings
-  // env[h][0] is envelope type
-  // env[h][1] is envelope attack
-  // env[h][2] is envelope decay
-  // env[h][3] is envelope sustain
-  // env[h][4] is envelope release
-  uint16_t env[HARMONICS][5];
+  picosynth_env env[HARMONICS];
 
   // The current per harmonic wave settings
   // wave[h][0] is oscillator amplitude
   // wave[h][1] is initialise the phase (offset into the sine LUT) of the wave
-  uint16_t wave[HARMONICS][2];
 
   /*
    * The current envelope settings. This represents the volume of the harmonic,

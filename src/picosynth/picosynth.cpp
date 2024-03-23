@@ -94,33 +94,23 @@ void PicoSynth::set_note(char note) { _note = note; }
 char PicoSynth::get_note() { return _note; }
 
 void PicoSynth::set_defaults() {
-  memset(wave, 0, sizeof(wave));
   memset(env, 0, sizeof(env));
   // memset(lfo, 0, sizeof(lfo));
   // memset(special, 0, sizeof(special));
 
-  // Simple sine wave, max vol, instant attack, max sustain, quick release
-  // The current envelope settings
-  // env[h][0] is envelope type
-  // env[h][1] is envelope attack
-  // env[h][2] is envelope decay
-  // env[h][3] is envelope sustain
-  // env[h][4] is envelope release
-
-  env[0][3] = env[1][3] = env[2][3] = env[3][3] = env[4][3] = env[5][3] = 3000;
-
   for (int h = 0; h < HARMONICS; h++) {
-    env[h][1] = 0;
-    env[h][4] = 20;
+    env[h].attack = 0;
+    env[h].sustain = 3000;
+    env[h].release = 20;
   }
   // sawtooth
   int saw_vol = 5000;
-  wave[0][0] = saw_vol;
-  wave[1][0] = saw_vol / 2;
-  wave[2][0] = saw_vol / 3;
-  wave[3][0] = saw_vol / 4;
-  wave[4][0] = saw_vol / 5;
-  wave[5][0] = saw_vol / 6;
+  env[0].amplitude = saw_vol;
+  env[1].amplitude = saw_vol / 2;
+  env[2].amplitude = saw_vol / 3;
+  env[3].amplitude = saw_vol / 4;
+  env[4].amplitude = saw_vol / 5;
+  env[5].amplitude = saw_vol / 6;
 
   envelope_gate(0);
 }
@@ -154,11 +144,11 @@ void PicoSynth::update_envelopes() {
    * count towards a playing note as they repeat indefinitely.
    */
   for (char i = 0; i < HARMONICS; i++) {
-    if (env[i][0] < 2 && wave[i][0])
+    if (env[i].type < 2 && env[i].type)
       // tremolo = 0;
-      if (filt_state[i] > 0 || env[i][0] > 1) {
+      if (filt_state[i] > 0 || env[i].type > 1) {
         finished++;
-        if (filt_state[i] == 5 || env[i][0] > 1)
+        if (filt_state[i] == 5 || env[i].type > 1)
           playing--;
       }
   }
@@ -168,16 +158,16 @@ void PicoSynth::update_envelopes() {
    * filt value represents the current volume of the oscillator.
    */
   for (u_char i = 0; i < HARMONICS; i++) {
-    level = wave[i][0];
+    level = env[i].amplitude;
     if (level == 0) {
       filt_state[i] = 6;
       continue;
     }
-    etype = (u_char)(env[i][0]);
-    attack = env[i][1];
-    decay = env[i][2];
-    sustain = env[i][3];
-    rel = env[i][4];
+    etype = (u_char)(env[i].type);
+    attack = env[i].attack;
+    decay = env[i].decay;
+    sustain = env[i].sustain;
+    rel = env[i].release;
     switch (filt_state[i]) {
     case 0: // Attack
       filt[i] += attack;
