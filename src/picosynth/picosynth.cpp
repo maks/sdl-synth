@@ -44,6 +44,12 @@ float noteToFreq(char note) {
   return (a / 32) * pow(2, ((note - 9) / 12.0));
 }
 
+void PicoSynth::setEnvelopeConfig(char index, picosynth_env config) {
+  env[index] = config;
+}
+
+picosynth_env PicoSynth::getEnvelopeConfig(char index) { return env[index]; }
+
 char env_update_count = 0;
 void PicoSynth::generateWaves(uint8_t *byte_stream, int len) {
   int16_t *s_byte_stream;

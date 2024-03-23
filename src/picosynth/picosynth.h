@@ -26,6 +26,10 @@ class PicoSynth {
 public:
   PicoSynth() {}
 
+  void setEnvelopeConfig(char index, picosynth_env config);
+
+  picosynth_env getEnvelopeConfig(char index);
+
   void generateWaves(uint8_t *byte_stream, int len);
 
   void update_envelopes();
