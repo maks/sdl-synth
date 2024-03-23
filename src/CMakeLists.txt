@@ -12,6 +12,8 @@ include_directories(${SDL2_INCLUDE_DIRS})
 
 add_executable(sdlsynth
     synth.cpp
+    visualiser.cpp
+    visualiser.h
     picosynth/picosynth.cpp
     picosynth/picosynth.h
 )

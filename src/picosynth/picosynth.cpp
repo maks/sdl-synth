@@ -104,13 +104,22 @@ void PicoSynth::set_defaults() {
     env[h].release = 20;
   }
   // sawtooth
-  int saw_vol = 5000;
-  env[0].amplitude = saw_vol;
-  env[1].amplitude = saw_vol / 2;
-  env[2].amplitude = saw_vol / 3;
-  env[3].amplitude = saw_vol / 4;
-  env[4].amplitude = saw_vol / 5;
-  env[5].amplitude = saw_vol / 6;
+  // int saw_vol = 5000;
+  // env[0].amplitude = saw_vol;
+  // env[1].amplitude = saw_vol / 2;
+  // env[2].amplitude = saw_vol / 3;
+  // env[3].amplitude = saw_vol / 4;
+  // env[4].amplitude = saw_vol / 5;
+  // env[5].amplitude = saw_vol / 6;
+
+  // Square
+  // int square_vol = 4000;
+  // env[0].amplitude = square_vol;
+  // env[2].amplitude = square_vol;
+  // env[4].amplitude = square_vol;
+
+  // SIne
+  env[0].amplitude = 10000;
 
   envelope_gate(0);
 }

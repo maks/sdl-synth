@@ -6,13 +6,16 @@
 #include <SDL2/SDL.h>
 
 #include "picosynth/picosynth.h"
+#include "visualiser.h"
 
 auto picoSynth = PicoSynth();
 
-char osc_callback_count = 0;
+uint8_t *audio_buffer;
+long vis_count = 0;
 
 void oscillator_callback(void *userdata, uint8_t *byteStream, int len) {
   picoSynth.generateWaves(byteStream, BUFFER_SIZE);
+  memcpy(audio_buffer + len * (vis_count++ % VIS_FRAMES), byteStream, len);
 }
 
 static void handle_note_keys(SDL_Keysym *keysym) {
@@ -51,6 +54,8 @@ static void handle_key_down(SDL_Keysym *keysym) { handle_note_keys(keysym); }
 
 int main(int argc, char const *argv[]) {
   printf("sdl synth UPDATE_RATE:%d\n", UPDATE_RATE);
+
+  audio_buffer = (uint8_t *)malloc((BUFFER_SIZE * 2) * VIS_FRAMES);
 
   if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_VIDEO) < 0) {
     printf("Failed to initialize SDL: %s\n", SDL_GetError());
@@ -107,6 +112,10 @@ int main(int argc, char const *argv[]) {
 
   while (true) {
     SDL_Event e;
+
+    visualiser_update(renderer, audio_buffer, BUFFER_SIZE * VIS_FRAMES, 480,
+                      640);
+
     while (SDL_PollEvent(&e)) {
       switch (e.type) {
       case SDL_KEYDOWN:
