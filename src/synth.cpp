@@ -7,8 +7,6 @@
 
 #include "picosynth/picosynth.h"
 
-const int BUFFER_SIZE = 1024;
-
 auto picoSynth = PicoSynth();
 
 char osc_callback_count = 0;
@@ -52,7 +50,7 @@ static void handle_note_keys(SDL_Keysym *keysym) {
 static void handle_key_down(SDL_Keysym *keysym) { handle_note_keys(keysym); }
 
 int main(int argc, char const *argv[]) {
-  printf("sdl synth\n");
+  printf("sdl synth UPDATE_RATE:%d\n", UPDATE_RATE);
 
   if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_VIDEO) < 0) {
     printf("Failed to initialize SDL: %s\n", SDL_GetError());

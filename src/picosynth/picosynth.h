@@ -4,6 +4,8 @@
 #include <cstdint>
 
 const int SAMPLE_RATE = 44100;
+const int BUFFER_SIZE = 256;
+const int UPDATE_RATE = SAMPLE_RATE / BUFFER_SIZE;
 
 const int HARMONICS = 6;
 const int LUT_SIZE = 100;

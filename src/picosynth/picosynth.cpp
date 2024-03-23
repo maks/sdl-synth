@@ -44,10 +44,13 @@ float noteToFreq(char note) {
   return (a / 32) * pow(2, ((note - 9) / 12.0));
 }
 
+char env_update_count = 0;
 void PicoSynth::generateWaves(uint8_t *byte_stream, int len) {
   int16_t *s_byte_stream;
 
-  update_envelopes();
+  if (env_update_count++ % 10) {
+    update_envelopes();
+  }
 
   // get correct phase increment for note depending on sample rate and LUT
   // length.
@@ -78,6 +81,10 @@ void PicoSynth::generateWaves(uint8_t *byte_stream, int len) {
 void PicoSynth::envelope_gate(bool on) {
   char state = on ? 0 : 4;
   for (int h = 0; h < HARMONICS; h++) {
+    // retrigger any still playing envelopes
+    if (on && filt_state[h] != 6) {
+      filt[h] = 0;
+    }
     filt_state[h] = state;
   }
 }
@@ -103,8 +110,8 @@ void PicoSynth::set_defaults() {
   env[0][3] = env[1][3] = env[2][3] = env[3][3] = env[4][3] = env[5][3] = 3000;
 
   for (int h = 0; h < HARMONICS; h++) {
-    env[h][1] = 1000;
-    env[h][4] = 100;
+    env[h][1] = 0;
+    env[h][4] = 20;
   }
   // sawtooth
   int saw_vol = 5000;
@@ -211,7 +218,7 @@ void PicoSynth::update_envelopes() {
         }
       } else {
         // printf("%dREL[%d]\n", i, filt[i]);
-        filt[i] -= (rel - filt[i]) > 0 ? (rel - filt[i]) : rel;
+        filt[i] -= rel;
         if (rel == 0 || filt[i] <= 0) {
           filt[i] = 0;
           filt_state[i] = 6;
