@@ -1,4 +1,6 @@
-test synth using Amy and SDL2
+# Testbed for synths using SDL2
+
+This is just a test application for synth engines to make it easier for me to prepare to integrate them as [picoTracker instruments](https://github.com/democloid/picoTracker/).
 
 ## prereqs
 
@@ -13,4 +15,15 @@ mkdir build
 cd build
 cmake ..
 make
+./sdlsynth
 ```
+
+Currently only tested to build and run on Ubuntu 23.10.
+
+## Picosynth
+
+This is a port of the additive synth: [AT-tiny85-additive-synth](https://github.com/jsvader/AT-tiny85-additive-synth)
+
+## Amysynth
+
+TODO
