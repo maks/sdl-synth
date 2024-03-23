@@ -13,7 +13,7 @@ void visialiser_draw_wave(SDL_Renderer *renderer, const SDL_Point &start,
   int16_t *data = (int16_t *)audio_buffer;
   for (int i = 0; i < (buffer_length); i++) {
     int16_t amplitude = data[i];
-    points.push_back(SDL_Point{start.x + i, (start.y - (amplitude / 16))});
+    points.push_back(SDL_Point{start.x + i, (start.y - (amplitude / 128))});
   }
 
   SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
