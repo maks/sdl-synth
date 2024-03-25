@@ -1,4 +1,4 @@
-#include "picosynth.h"
+#include "tinysynth.h"
 #include "fixed.h"
 #include "math.h"
 #include <cstdint>
@@ -12,7 +12,7 @@ const int16_t sine[LUT_SIZE] = {
     -74,  -84,  -94,  -102, -109, -116, -120, -124, -126, -127, -126, -124,
     -120, -116, -109, -102, -94,  -84,  -74,  -63,  -51,  -39,  -26,  -13};
 
-int PicoSynth::generatePhaseSample(float phase_increment, float &phase_index,
+int TinySynth::generatePhaseSample(float phase_increment, float &phase_index,
                                    int vol) {
   phase_index = phase_index;
   phase_index += phase_increment;
@@ -33,13 +33,13 @@ float noteToFreq(char note) {
   return (a / 32) * pow(2, ((note - 9) / 12.0));
 }
 
-void PicoSynth::setEnvelopeConfig(char index, picosynth_env config) {
+void TinySynth::setEnvelopeConfig(char index, tinysynth_env config) {
   env[index] = config;
 }
 
-picosynth_env PicoSynth::getEnvelopeConfig(char index) { return env[index]; }
+tinysynth_env TinySynth::getEnvelopeConfig(char index) { return env[index]; }
 
-void PicoSynth::generateWaves(uint8_t *byte_stream, int len) {
+void TinySynth::generateWaves(uint8_t *byte_stream, int len) {
   int16_t *s_byte_stream;
 
   update_envelopes();
@@ -70,18 +70,18 @@ void PicoSynth::generateWaves(uint8_t *byte_stream, int len) {
   }
 }
 
-void PicoSynth::envelope_gate(bool on) {
+void TinySynth::envelope_gate(bool on) {
   char state = on ? 0 : 4;
   for (int h = 0; h < HARMONICS; h++) {
     filt_state[h] = state;
   }
 }
 
-void PicoSynth::set_note(char note) { _note = note; }
+void TinySynth::set_note(char note) { _note = note; }
 
-char PicoSynth::get_note() { return _note; }
+char TinySynth::get_note() { return _note; }
 
-void PicoSynth::set_defaults() {
+void TinySynth::set_defaults() {
 
   for (int h = 0; h < HARMONICS; h++) {
     env[h].attack = 100;
@@ -123,7 +123,7 @@ void PicoSynth::set_defaults() {
  *
  * A standard adsr will go, states: 0, 2, 3, 4, 5
  */
-void PicoSynth::update_envelopes() {
+void TinySynth::update_envelopes() {
   u_char finished = 0;
   u_char playing = HARMONICS;
   int attack, decay, level, sustain, rel;

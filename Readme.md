@@ -20,7 +20,7 @@ make
 
 Currently only tested to build and run on Ubuntu 23.10.
 
-## Picosynth
+## Tinysynth
 
 This is a port of the additive synth: [AT-tiny85-additive-synth](https://github.com/jsvader/AT-tiny85-additive-synth)
 

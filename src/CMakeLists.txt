@@ -14,8 +14,8 @@ add_executable(sdlsynth
     synth.cpp
     visualiser.cpp
     visualiser.h
-    picosynth/picosynth.cpp
-    picosynth/picosynth.h
+    tinysynth/tinysynth.cpp
+    tinysynth/tinysynth.h
 )
 
 add_executable(lut

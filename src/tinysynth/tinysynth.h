@@ -1,5 +1,5 @@
-#ifndef PICO_SYNTH_H
-#define PICO_SYNTH_H
+#ifndef TINY_SYNTH_H
+#define TINY_SYNTH_H
 
 #include <cstdint>
 #include <math.h>
@@ -13,7 +13,7 @@ const int LUT_SIZE = 60;
 
 float noteToFreq(char note);
 
-struct picosynth_env {
+struct tinysynth_env {
   char type;
   char attack;
   char decay;
@@ -23,13 +23,13 @@ struct picosynth_env {
   char phase;
 };
 
-class PicoSynth {
+class TinySynth {
 public:
-  PicoSynth() {}
+  TinySynth() {}
 
-  void setEnvelopeConfig(char index, picosynth_env config);
+  void setEnvelopeConfig(char index, tinysynth_env config);
 
-  picosynth_env getEnvelopeConfig(char index);
+  tinysynth_env getEnvelopeConfig(char index);
 
   void generateWaves(uint8_t *byte_stream, int len);
 
@@ -44,7 +44,7 @@ public:
   char get_note();
 
 private:
-  picosynth_env env[HARMONICS];
+  tinysynth_env env[HARMONICS];
   // The current envelope settings. This represents the volume of the harmonic,
   // and the state it is in.
   int filt[HARMONICS] = {0, 0, 0, 0, 0, 0};

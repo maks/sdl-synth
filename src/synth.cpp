@@ -5,22 +5,22 @@
 
 #include <SDL2/SDL.h>
 
-#include "picosynth/picosynth.h"
+#include "tinysynth/tinysynth.h"
 #include "visualiser.h"
 
-auto picoSynth = PicoSynth();
+auto tinysynth = TinySynth();
 
 uint8_t *audio_buffer;
 long vis_count = 0;
 
 void oscillator_callback(void *userdata, uint8_t *byteStream, int len) {
-  picoSynth.generateWaves(byteStream, BUFFER_SIZE);
+  tinysynth.generateWaves(byteStream, BUFFER_SIZE);
   memcpy(audio_buffer + len * (vis_count++ % VIS_FRAMES), byteStream, len);
 }
 
 static void handle_note_keys(SDL_Keysym *keysym) {
   /* change note or octave depending on which key is pressed */
-  int new_note = picoSynth.get_note();
+  int new_note = tinysynth.get_note();
   switch (keysym->sym) {
   case SDLK_a:
     new_note = 57;
@@ -47,13 +47,13 @@ static void handle_note_keys(SDL_Keysym *keysym) {
     new_note = 64;
     break;
   }
-  picoSynth.set_note(new_note);
+  tinysynth.set_note(new_note);
 }
 
 static void handle_key_down(SDL_Keysym *keysym) { handle_note_keys(keysym); }
 
 int main(int argc, char const *argv[]) {
-  printf("picosynth ENVELOPE UPDATE_RATE:%d\n", ENVELOPE_UPDATE_RATE);
+  printf("tinysynth \n");
 
   audio_buffer = (uint8_t *)malloc((BUFFER_SIZE * 2) * VIS_FRAMES);
 
@@ -105,8 +105,8 @@ int main(int argc, char const *argv[]) {
     printf("Opened Audio Device: %d\n", spec.format);
   }
 
-  // set picosynth defaults
-  picoSynth.set_defaults();
+  // set tinysynth defaults
+  tinysynth.set_defaults();
 
   SDL_PauseAudio(0);
 
@@ -122,13 +122,13 @@ int main(int argc, char const *argv[]) {
         // dont want key repeats
         if (e.key.repeat == 0) {
           handle_key_down(&e.key.keysym);
-          picoSynth.envelope_gate(true);
-          printf("PlAY NOTE FREQ:%f\n", noteToFreq(picoSynth.get_note()));
+          tinysynth.envelope_gate(true);
+          printf("PlAY NOTE FREQ:%f\n", noteToFreq(tinysynth.get_note()));
         }
         break;
       case SDL_KEYUP:
         printf("STOP NOTE\n");
-        picoSynth.envelope_gate(false);
+        tinysynth.envelope_gate(false);
         break;
       case SDL_QUIT:
         printf("exiting...\n");
