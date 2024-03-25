@@ -84,10 +84,6 @@ void PicoSynth::generateWaves(uint8_t *byte_stream, int len) {
 void PicoSynth::envelope_gate(bool on) {
   char state = on ? 0 : 4;
   for (int h = 0; h < HARMONICS; h++) {
-    // retrigger any still playing envelopes
-    if (on && filt_state[h] != 6) {
-      filt[h] = 0;
-    }
     filt_state[h] = state;
   }
 }
@@ -102,18 +98,18 @@ void PicoSynth::set_defaults() {
   // memset(special, 0, sizeof(special));
 
   for (int h = 0; h < HARMONICS; h++) {
-    env[h].attack = 0;
-    env[h].sustain = 4000;
-    env[h].release = 0;
+    env[h].attack = 200;
+    env[h].sustain = 13000;
+    env[h].release = 10;
   }
   // sawtooth
-  // int saw_vol = 5000;
-  // env[0].amplitude = saw_vol;
-  // env[1].amplitude = saw_vol / 2;
-  // env[2].amplitude = saw_vol / 3;
-  // env[3].amplitude = saw_vol / 4;
-  // env[4].amplitude = saw_vol / 5;
-  // env[5].amplitude = saw_vol / 6;
+  int saw_vol = 13000;
+  env[0].amplitude = saw_vol;
+  env[1].amplitude = saw_vol / 2;
+  env[2].amplitude = saw_vol / 3;
+  env[3].amplitude = saw_vol / 4;
+  env[4].amplitude = saw_vol / 5;
+  env[5].amplitude = saw_vol / 6;
 
   // Square
   // int square_vol = 4000;
@@ -122,7 +118,7 @@ void PicoSynth::set_defaults() {
   // env[4].amplitude = square_vol / 5;
 
   // Sine
-  env[0].amplitude = 15000;
+  // env[0].amplitude = 15000;
 
   envelope_gate(0);
 }
