@@ -47,12 +47,12 @@ void PicoSynth::setEnvelopeConfig(char index, picosynth_env config) {
 
 picosynth_env PicoSynth::getEnvelopeConfig(char index) { return env[index]; }
 
-char env_update_count = 0;
 void PicoSynth::generateWaves(uint8_t *byte_stream, int len) {
   int16_t *s_byte_stream;
 
-  if (env_update_count++ % 10) {
+  if (_env_update_count++ > ENVELOPE_UPDATE_RATE) {
     update_envelopes();
+    _env_update_count = 0;
   }
 
   // get correct phase increment for note depending on sample rate and LUT
@@ -95,9 +95,9 @@ char PicoSynth::get_note() { return _note; }
 void PicoSynth::set_defaults() {
 
   for (int h = 0; h < HARMONICS; h++) {
-    env[h].attack = 200;
+    env[h].attack = 20;
     env[h].sustain = 13000;
-    env[h].release = 10;
+    env[h].release = 1000;
   }
   // sawtooth
   int saw_vol = 13000;

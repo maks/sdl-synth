@@ -2,10 +2,12 @@
 #define PICO_SYNTH_H
 
 #include <cstdint>
+#include <math.h>
 
 const int SAMPLE_RATE = 44100;
 const int BUFFER_SIZE = 256;
-const int UPDATE_RATE = SAMPLE_RATE / BUFFER_SIZE;
+// want envelope update rate of ~10ms aka ~100Hz
+const int ENVELOPE_UPDATE_RATE = floor(((float)SAMPLE_RATE / BUFFER_SIZE) / 10);
 
 const int HARMONICS = 6;
 const int LUT_SIZE = 100;
@@ -53,6 +55,7 @@ private:
 
   char gate = 0;
   char _note = 60; /* integer representing midi notes */
+  char _env_update_count = 0;
 
   int generatePhaseSample(float phase_increment, float &phase_index, int vol);
 };
