@@ -53,7 +53,7 @@ static void handle_note_keys(SDL_Keysym *keysym) {
 static void handle_key_down(SDL_Keysym *keysym) { handle_note_keys(keysym); }
 
 int main(int argc, char const *argv[]) {
-  printf("sdl synth UPDATE_RATE:%d\n", UPDATE_RATE);
+  printf("picosynth ENVELOPE UPDATE_RATE:%d\n", ENVELOPE_UPDATE_RATE);
 
   audio_buffer = (uint8_t *)malloc((BUFFER_SIZE * 2) * VIS_FRAMES);
 
@@ -122,13 +122,13 @@ int main(int argc, char const *argv[]) {
         // dont want key repeats
         if (e.key.repeat == 0) {
           handle_key_down(&e.key.keysym);
-          picoSynth.envelope_gate(1);
+          picoSynth.envelope_gate(true);
           printf("PlAY NOTE FREQ:%f\n", noteToFreq(picoSynth.get_note()));
         }
         break;
       case SDL_KEYUP:
         printf("STOP NOTE\n");
-        picoSynth.envelope_gate(0);
+        picoSynth.envelope_gate(false);
         break;
       case SDL_QUIT:
         printf("exiting...\n");

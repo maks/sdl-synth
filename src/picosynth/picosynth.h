@@ -2,6 +2,7 @@
 #define PICO_SYNTH_H
 
 #include <cstdint>
+#include <math.h>
 
 const int SAMPLE_RATE = 44100;
 const int BUFFER_SIZE = 512;
