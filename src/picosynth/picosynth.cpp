@@ -22,7 +22,6 @@ int16_t sine[LUT_SIZE] = {
 
 int PicoSynth::generatePhaseSample(float phase_increment, float &phase_index,
                                    int vol) {
-  int result = 0;
   phase_index = phase_index;
   phase_index += phase_increment;
 
@@ -31,10 +30,8 @@ int PicoSynth::generatePhaseSample(float phase_increment, float &phase_index,
     phase_index = diff;
   }
 
-  result = sine[(int)phase_index];
-  int result_fp = i2fp(result);
-  auto res_fp = fp_mul(result_fp, vol);
-  return fp2i(res_fp);
+  long result = sine[(int)phase_index] * vol;
+  return (int)(result >> 16);
 }
 
 // Calculate frequency from MIDI note value
