@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-int16_t sine[LUT_SIZE] = {
+const int16_t sine[LUT_SIZE] = {
     0,      2057,   4106,   6139,   8148,   10125,  12062,  13951,  15785,
     17557,  19259,  20886,  22430,  23886,  25247,  26509,  27666,  28713,
     29648,  30465,  31163,  31737,  32186,  32508,  32702,  32767,  32702,
@@ -93,9 +93,6 @@ void PicoSynth::set_note(char note) { _note = note; }
 char PicoSynth::get_note() { return _note; }
 
 void PicoSynth::set_defaults() {
-  memset(env, 0, sizeof(env));
-  // memset(lfo, 0, sizeof(lfo));
-  // memset(special, 0, sizeof(special));
 
   for (int h = 0; h < HARMONICS; h++) {
     env[h].attack = 200;
@@ -119,8 +116,6 @@ void PicoSynth::set_defaults() {
 
   // Sine
   // env[0].amplitude = 15000;
-
-  envelope_gate(0);
 }
 
 /*
@@ -153,7 +148,7 @@ void PicoSynth::update_envelopes() {
    */
   for (char i = 0; i < HARMONICS; i++) {
     if (env[i].type < 2 && env[i].type)
-      // tremolo = 0;
+      tremolo = 0;
       if (filt_state[i] > 0 || env[i].type > 1) {
         finished++;
         if (filt_state[i] == 5 || env[i].type > 1)
