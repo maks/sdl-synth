@@ -6,19 +6,11 @@
 #include <string.h>
 
 const int16_t sine[LUT_SIZE] = {
-    0,      2057,   4106,   6139,   8148,   10125,  12062,  13951,  15785,
-    17557,  19259,  20886,  22430,  23886,  25247,  26509,  27666,  28713,
-    29648,  30465,  31163,  31737,  32186,  32508,  32702,  32767,  32702,
-    32508,  32186,  31737,  31163,  30465,  29648,  28713,  27666,  26509,
-    25247,  23886,  22430,  20886,  19259,  17557,  15785,  13951,  12062,
-    10125,  8148,   6139,   4106,   2057,   0,      -2057,  -4106,  -6139,
-    -8148,  -10125, -12062, -13951, -15785, -17557, -19259, -20886, -22430,
-    -23886, -25247, -26509, -27666, -28713, -29648, -30465, -31163, -31737,
-    -32186, -32508, -32702, -32767, -32702, -32508, -32186, -31737, -31163,
-    -30465, -29648, -28713, -27666, -26509, -25247, -23886, -22430, -20886,
-    -19259, -17557, -15785, -13951, -12062, -10125, -8148,  -6139,  -4106,
-    -2057,
-};
+    0,    13,   26,   39,   51,   63,   74,   84,   94,   102,  109,  116,
+    120,  124,  126,  127,  126,  124,  120,  116,  109,  102,  94,   84,
+    74,   63,   51,   39,   26,   13,   0,    -13,  -26,  -39,  -51,  -63,
+    -74,  -84,  -94,  -102, -109, -116, -120, -124, -126, -127, -126, -124,
+    -120, -116, -109, -102, -94,  -84,  -74,  -63,  -51,  -39,  -26,  -13};
 
 int PicoSynth::generatePhaseSample(float phase_increment, float &phase_index,
                                    int vol) {
@@ -30,8 +22,8 @@ int PicoSynth::generatePhaseSample(float phase_increment, float &phase_index,
     phase_index = diff;
   }
 
-  long result = sine[(int)phase_index] * vol;
-  return (int)(result >> 16);
+  int result = (int)sine[(int)phase_index] * vol >> 8;
+  return result;
 }
 
 // Calculate frequency from MIDI note value
@@ -50,10 +42,7 @@ picosynth_env PicoSynth::getEnvelopeConfig(char index) { return env[index]; }
 void PicoSynth::generateWaves(uint8_t *byte_stream, int len) {
   int16_t *s_byte_stream;
 
-  if (_env_update_count++ > ENVELOPE_UPDATE_RATE) {
-    update_envelopes();
-    _env_update_count = 0;
-  }
+  update_envelopes();
 
   // get correct phase increment for note depending on sample rate and LUT
   // length.
@@ -95,12 +84,12 @@ char PicoSynth::get_note() { return _note; }
 void PicoSynth::set_defaults() {
 
   for (int h = 0; h < HARMONICS; h++) {
-    env[h].attack = 20;
-    env[h].sustain = 13000;
-    env[h].release = 1000;
+    env[h].attack = 100;
+    env[h].sustain = 255;
+    env[h].release = 80;
   }
   // sawtooth
-  int saw_vol = 13000;
+  int saw_vol = 240;
   env[0].amplitude = saw_vol;
   env[1].amplitude = saw_vol / 2;
   env[2].amplitude = saw_vol / 3;
@@ -149,11 +138,11 @@ void PicoSynth::update_envelopes() {
   for (char i = 0; i < HARMONICS; i++) {
     if (env[i].type < 2 && env[i].type)
       tremolo = 0;
-      if (filt_state[i] > 0 || env[i].type > 1) {
-        finished++;
-        if (filt_state[i] == 5 || env[i].type > 1)
-          playing--;
-      }
+    if (filt_state[i] > 0 || env[i].type > 1) {
+      finished++;
+      if (filt_state[i] == 5 || env[i].type > 1)
+        playing--;
+    }
   }
 
   /*
@@ -161,7 +150,7 @@ void PicoSynth::update_envelopes() {
    * filt value represents the current volume of the oscillator.
    */
   for (u_char i = 0; i < HARMONICS; i++) {
-    level = env[i].amplitude;
+    level = env[i].amplitude << 8;
     if (level == 0) {
       filt_state[i] = 6;
       continue;
@@ -169,7 +158,7 @@ void PicoSynth::update_envelopes() {
     etype = (u_char)(env[i].type);
     attack = env[i].attack;
     decay = env[i].decay;
-    sustain = env[i].sustain;
+    sustain = level >> 8 * env[i].sustain;
     rel = env[i].release;
     switch (filt_state[i]) {
     case 0: // Attack

@@ -5,23 +5,22 @@
 #include <math.h>
 
 const int SAMPLE_RATE = 44100;
-const int BUFFER_SIZE = 256;
-// want envelope update rate of ~10ms aka ~100Hz
-const int ENVELOPE_UPDATE_RATE = floor(((float)SAMPLE_RATE / BUFFER_SIZE) / 10);
+const int BUFFER_SIZE = 512;
+const int UPDATE_RATE = SAMPLE_RATE / BUFFER_SIZE;
 
 const int HARMONICS = 6;
-const int LUT_SIZE = 100;
+const int LUT_SIZE = 60;
 
 float noteToFreq(char note);
 
 struct picosynth_env {
   char type;
-  int attack;
-  int decay;
-  int sustain;
-  int release;
-  int amplitude;
-  int phase;
+  char attack;
+  char decay;
+  char sustain;
+  char release;
+  char amplitude;
+  char phase;
 };
 
 class PicoSynth {
@@ -53,7 +52,6 @@ private:
   char filt_state[HARMONICS] = {6, 6, 6, 6, 6, 6};
   float phase_int[HARMONICS] = {0, 0, 0, 0, 0, 0};
 
-  char gate = 0;
   char _note = 60; /* integer representing midi notes */
   char _env_update_count = 0;
 

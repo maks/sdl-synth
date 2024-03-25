@@ -2,13 +2,13 @@
 #include <stdint.h>
 #include <stdio.h>
 
-static int16_t *sine_wave_table;
+static int8_t *sine_wave_table;
 
 static const double pi = 3.14159265358979323846;
 
 // ref:
 // https://github.com/lundstroem/synth-samples-sdl2/blob/master/src/synth_samples_sdl2_2.c
-static void build_sine_table(int16_t *data, int wave_length) {
+static void build_sine_table(int8_t *data, int wave_length) {
   int i;
   /*
       Build sine table to use as oscillator:
@@ -20,8 +20,8 @@ static void build_sine_table(int16_t *data, int wave_length) {
   double phase_increment = (2.0f * pi) / (double)wave_length;
   double current_phase = 0;
   for (i = 0; i < wave_length; i++) {
-    int sample = (int)(sin(current_phase) * INT16_MAX);
-    data[i] = (int16_t)sample;
+    int sample = (int)(sin(current_phase) * INT8_MAX);
+    data[i] = (int8_t)sample;
     current_phase += phase_increment;
   }
 }
@@ -29,7 +29,7 @@ static void build_sine_table(int16_t *data, int wave_length) {
 int main(void) {
   int table_length = 60;
   /* allocate memory for sine table and build it */
-  sine_wave_table = (int16_t *)malloc(sizeof(int16_t) * table_length);
+  sine_wave_table = (int8_t *)malloc(sizeof(int8_t) * table_length);
   build_sine_table(sine_wave_table, table_length);
 
   printf("{");

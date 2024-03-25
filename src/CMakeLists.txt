@@ -22,6 +22,9 @@ add_executable(lut
     lut.cpp
 )
 
+add_executable(lut8
+    lut8.cpp
+)
 
 target_link_libraries(sdlsynth 
     PUBLIC ${SDL2_LIBRARIES} 
