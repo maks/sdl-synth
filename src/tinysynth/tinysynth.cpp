@@ -59,7 +59,6 @@ void TinySynth::generateWaves(uint8_t *byte_stream, int len) {
 
   // generate samples
   for (int i = 0; i < len; i++) {
-
     int fullResult = 0;
     for (int h = 0; h < HARMONICS; h++) {
       fullResult +=
@@ -124,11 +123,11 @@ void TinySynth::set_defaults() {
  * A standard adsr will go, states: 0, 2, 3, 4, 5
  */
 void TinySynth::update_envelopes() {
-  u_char finished = 0;
-  u_char playing = HARMONICS;
+  uint8_t finished = 0;
+  uint8_t playing = HARMONICS;
   int attack, decay, level, sustain, rel;
-  u_char etype;
-  u_char tremolo = 1;
+  uint8_t etype;
+  uint8_t tremolo = 1;
 
   /*
    * Work out which notes are still playing, and which have
@@ -149,13 +148,13 @@ void TinySynth::update_envelopes() {
    * Loop through the oscillators, and set their filt value. The
    * filt value represents the current volume of the oscillator.
    */
-  for (u_char i = 0; i < HARMONICS; i++) {
+  for (uint8_t i = 0; i < HARMONICS; i++) {
     level = env[i].amplitude << 8;
     if (level == 0) {
       filt_state[i] = 6;
       continue;
     }
-    etype = (u_char)(env[i].type);
+    etype = (uint8_t)(env[i].type);
     attack = env[i].attack;
     decay = env[i].decay;
     sustain = level >> 8 * env[i].sustain;
