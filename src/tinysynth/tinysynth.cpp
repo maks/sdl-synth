@@ -5,12 +5,30 @@
 #include <stdio.h>
 #include <string.h>
 
-const int16_t sine[LUT_SIZE] = {
-    0,    13,   26,   39,   51,   63,   74,   84,   94,   102,  109,  116,
-    120,  124,  126,  127,  126,  124,  120,  116,  109,  102,  94,   84,
-    74,   63,   51,   39,   26,   13,   0,    -13,  -26,  -39,  -51,  -63,
-    -74,  -84,  -94,  -102, -109, -116, -120, -124, -126, -127, -126, -124,
-    -120, -116, -109, -102, -94,  -84,  -74,  -63,  -51,  -39,  -26,  -13};
+const char sine[LUT_SIZE] = {
+    0,    3,    6,    9,    12,   15,   18,   21,   24,   27,   30,   33,
+    36,   39,   42,   45,   48,   51,   54,   57,   59,   62,   65,   67,
+    70,   73,   75,   78,   80,   82,   85,   87,   89,   91,   94,   96,
+    98,   100,  102,  103,  105,  107,  108,  110,  112,  113,  114,  116,
+    117,  118,  119,  120,  121,  122,  123,  123,  124,  125,  125,  126,
+    126,  126,  126,  126,  127,  126,  126,  126,  126,  126,  125,  125,
+    124,  123,  123,  122,  121,  120,  119,  118,  117,  116,  114,  113,
+    112,  110,  108,  107,  105,  103,  102,  100,  98,   96,   94,   91,
+    89,   87,   85,   82,   80,   78,   75,   73,   70,   67,   65,   62,
+    59,   57,   54,   51,   48,   45,   42,   39,   36,   33,   30,   27,
+    24,   21,   18,   15,   12,   9,    6,    3,    0,    -3,   -6,   -9,
+    -12,  -15,  -18,  -21,  -24,  -27,  -30,  -33,  -36,  -39,  -42,  -45,
+    -48,  -51,  -54,  -57,  -59,  -62,  -65,  -67,  -70,  -73,  -75,  -78,
+    -80,  -82,  -85,  -87,  -89,  -91,  -94,  -96,  -98,  -100, -102, -103,
+    -105, -107, -108, -110, -112, -113, -114, -116, -117, -118, -119, -120,
+    -121, -122, -123, -123, -124, -125, -125, -126, -126, -126, -126, -126,
+    -127, -126, -126, -126, -126, -126, -125, -125, -124, -123, -123, -122,
+    -121, -120, -119, -118, -117, -116, -114, -113, -112, -110, -108, -107,
+    -105, -103, -102, -100, -98,  -96,  -94,  -91,  -89,  -87,  -85,  -82,
+    -80,  -78,  -75,  -73,  -70,  -67,  -65,  -62,  -59,  -57,  -54,  -51,
+    -48,  -45,  -42,  -39,  -36,  -33,  -30,  -27,  -24,  -21,  -18,  -15,
+    -12,  -9,   -6,   -3,
+};
 
 int TinySynth::generatePhaseSample(float phase_increment, float &phase_index,
                                    int vol) {
@@ -83,18 +101,18 @@ char TinySynth::get_note() { return _note; }
 void TinySynth::set_defaults() {
 
   for (int h = 0; h < HARMONICS; h++) {
-    env[h].attack = 100;
-    env[h].sustain = 255;
-    env[h].release = 80;
+    env[h].attack = 30;
+    env[h].sustain = 30;
+    env[h].release = 20;
   }
   // sawtooth
-  int saw_vol = 240;
-  env[0].amplitude = saw_vol;
-  env[1].amplitude = saw_vol / 2;
-  env[2].amplitude = saw_vol / 3;
-  env[3].amplitude = saw_vol / 4;
-  env[4].amplitude = saw_vol / 5;
-  env[5].amplitude = saw_vol / 6;
+  // int saw_vol = 240;
+  // env[0].amplitude = saw_vol;
+  // env[1].amplitude = saw_vol / 2;
+  // env[2].amplitude = saw_vol / 3;
+  // env[3].amplitude = saw_vol / 4;
+  // env[4].amplitude = saw_vol / 5;
+  // env[5].amplitude = saw_vol / 6;
 
   // Square
   // int square_vol = 4000;
@@ -103,7 +121,8 @@ void TinySynth::set_defaults() {
   // env[4].amplitude = square_vol / 5;
 
   // Sine
-  // env[0].amplitude = 15000;
+  // env[0].amplitude = 150;
+  env[0].amplitude = 100;
 }
 
 /*
@@ -155,10 +174,10 @@ void TinySynth::update_envelopes() {
       continue;
     }
     etype = (uint8_t)(env[i].type);
-    attack = env[i].attack;
+    attack = level / env[i].attack;
     decay = env[i].decay;
     sustain = level >> 8 * env[i].sustain;
-    rel = env[i].release;
+    rel = level / env[i].release;
     switch (filt_state[i]) {
     case 0: // Attack
       filt[i] += attack;

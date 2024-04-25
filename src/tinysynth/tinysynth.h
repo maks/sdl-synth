@@ -9,7 +9,7 @@ const int BUFFER_SIZE = 512;
 const int UPDATE_RATE = SAMPLE_RATE / BUFFER_SIZE;
 
 const int HARMONICS = 6;
-const int LUT_SIZE = 60;
+const int LUT_SIZE = 256;
 
 float noteToFreq(char note);
 

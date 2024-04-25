@@ -27,7 +27,7 @@ static void build_sine_table(int8_t *data, int wave_length) {
 }
 
 int main(void) {
-  int table_length = 60;
+  int table_length = 256;
   /* allocate memory for sine table and build it */
   sine_wave_table = (int8_t *)malloc(sizeof(int8_t) * table_length);
   build_sine_table(sine_wave_table, table_length);
