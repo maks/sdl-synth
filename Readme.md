@@ -24,6 +24,17 @@ Currently only tested to build and run on Ubuntu 23.10.
 
 This is a port of the additive synth: [AT-tiny85-additive-synth](https://github.com/jsvader/AT-tiny85-additive-synth)
 
-## Amysynth
+## Tinysynth2
+
+This is additive synth inspired AT-tiny85-additive-synth but mostly built from scratch.
+
+## References
+
+Very useful set of articles about wavetable oscillator, ADSR implementations, etc:
+https://www.earlevel.com/main/2012/05/25/a-wavetable-oscillator-the-code/
+
+SDL2 Audio Synth samples:
+https://github.com/lundstroem/synth-samples-sdl2/tree/master/src
+
 
 TODO

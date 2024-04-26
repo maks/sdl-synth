@@ -11,11 +11,17 @@ include_directories(${SDL2_INCLUDE_DIRS})
 # add_subdirectory(amy)
 
 add_executable(sdlsynth
-    synth.cpp
+    # synth.cpp
+    testsynth2.cpp
     visualiser.cpp
     visualiser.h
-    tinysynth/tinysynth.cpp
-    tinysynth/tinysynth.h
+    # tinysynth/tinysynth.cpp
+    # tinysynth/tinysynth.h
+    tinysynth2/tinysynth2.cpp
+    tinysynth2/tinysynth2.h
+    tinysynth2/osc.h
+    tinysynth2/osc.cpp
+    tinysynth2/utils.h
 )
 
 add_executable(lut
