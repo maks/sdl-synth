@@ -2,7 +2,7 @@
 #include "tinysynth2.h"
 #include <stdio.h>
 
-int Osc::generateSample() {
+int SineOsc::generateSample() {
   phase_index += phase_increment;
 
   if (phase_index >= LUT_SIZE) {

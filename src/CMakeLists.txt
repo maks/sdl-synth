@@ -22,6 +22,8 @@ add_executable(sdlsynth
     tinysynth2/osc.h
     tinysynth2/osc.cpp
     tinysynth2/utils.h
+    tinysynth2/adsr.h
+    tinysynth2/adsr.cpp
 )
 
 add_executable(lut

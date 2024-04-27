@@ -1,13 +1,14 @@
 #ifndef TINY_SYNTH_H
 #define TINY_SYNTH_H
 
+#include "adsr.h"
 #include "osc.h"
 #include <cstdint>
 #include <math.h>
 
-const int SAMPLE_RATE = 44100;
 const int BUFFER_SIZE = 512;
-const int UPDATE_RATE = SAMPLE_RATE / BUFFER_SIZE;
+const int CONTROL_RATE_DIVISOR = 10;
+const int CONTROL_RATE = SAMPLE_RATE / CONTROL_RATE_DIVISOR;
 
 const int HARMONICS = 6;
 
@@ -25,7 +26,11 @@ struct tinysynth_env {
 
 class TinySynth {
 public:
-  TinySynth() {}
+  TinySynth() {
+    adsr.setAttackRate(0);
+    adsr.setSustainLevel(255);
+    adsr.setReleaseRate(CONTROL_RATE * 1.5);
+  };
 
   void setEnvelopeConfig(char index, tinysynth_env config);
 
@@ -54,7 +59,8 @@ private:
 
   char _note = 60; /* integer representing midi notes */
 
-  Osc osc = Osc();
+  SineOsc osc = SineOsc();
+  ADSR adsr = ADSR();
 };
 
 const char sine[LUT_SIZE] = {
