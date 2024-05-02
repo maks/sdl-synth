@@ -27,7 +27,7 @@ void TinySynth::generateWaves(uint8_t *byte_stream, int len) {
   /* cast buffer as 16bit signed int */
   s_byte_stream = (int16_t *)byte_stream;
 
-  float env = adsr.process();
+  int env = adsr.process();
 
   // generate samples
   for (int i = 0; i < len; i++) {
@@ -41,7 +41,7 @@ void TinySynth::generateWaves(uint8_t *byte_stream, int len) {
       env = adsr.process();
     }
     fullResult = osc.generateSample();
-    s_byte_stream[i] = fullResult * env;
+    s_byte_stream[i] = fullResult * (env >> 8);
   }
 }
 

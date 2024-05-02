@@ -3,11 +3,13 @@
 
 enum envState { env_idle = 0, env_attack, env_decay, env_sustain, env_release };
 
+#define MAX_LEVEL __INT16_MAX__
+
 class ADSR {
 public:
   ADSR(){};
 
-  float process();
+  int process();
   void gate(bool on);
 
   void setAttackRate(int rate);
@@ -17,15 +19,13 @@ public:
   void reset();
   envState getState() { return state; };
 
-  float maxLevel = 255;
-
 private:
   int attackIncrement;
   int decayIncrement;
   int sustainLevel;
-  float releaseIncrement;
+  int releaseIncrement;
 
-  float output = 0;
+  int output = 0;
   envState state;
 };
 

@@ -28,7 +28,7 @@ class TinySynth {
 public:
   TinySynth() {
     adsr.setAttackRate(0);
-    adsr.setSustainLevel(255);
+    adsr.setSustainLevel(MAX_LEVEL);
     adsr.setReleaseRate(CONTROL_RATE * 1.5);
   };
 

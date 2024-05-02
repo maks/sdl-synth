@@ -4,14 +4,14 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-float ADSR::process() {
+int ADSR::process() {
   switch (state) {
   case env_idle:
     break;
   case env_attack:
     output += attackIncrement;
-    if (output >= maxLevel || attackIncrement == 0) {
-      output = maxLevel;
+    if (output >= MAX_LEVEL || attackIncrement == 0) {
+      output = MAX_LEVEL;
       state = env_decay;
     }
     break;
@@ -43,14 +43,14 @@ void ADSR::setAttackRate(int duration) {
     attackIncrement = 0;
     return;
   }
-  attackIncrement = maxLevel / duration;
+  attackIncrement = MAX_LEVEL / duration;
 }
 
-void ADSR::setDecayRate(int duration) { decayIncrement = maxLevel / duration; }
+void ADSR::setDecayRate(int duration) { decayIncrement = MAX_LEVEL / duration; }
 
 void ADSR::setReleaseRate(int duration) {
-  releaseIncrement = maxLevel / duration;
-  printf("rel:%f\n", releaseIncrement);
+  releaseIncrement = MAX_LEVEL / duration;
+  printf("set rel:%d\n", releaseIncrement);
 }
 
 void ADSR::setSustainLevel(int level) { sustainLevel = level; }
