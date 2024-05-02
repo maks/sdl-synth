@@ -23,8 +23,7 @@ int ADSR::process() {
     }
     break;
   case env_sustain:
-    // TODO
-    state = env_release;
+    // sustain here until the gate moves into release state
     break;
   case env_release:
     output -= releaseIncrement;
@@ -37,7 +36,7 @@ int ADSR::process() {
 }
 
 // attack duration in number of cycles at the control rate
-// ie. the rate at which process() is called
+// the control rate is the rate at which process() is called
 void ADSR::setAttackRate(int duration) {
   if (duration == 0) {
     attackIncrement = 0;
@@ -50,7 +49,6 @@ void ADSR::setDecayRate(int duration) { decayIncrement = MAX_LEVEL / duration; }
 
 void ADSR::setReleaseRate(int duration) {
   releaseIncrement = MAX_LEVEL / duration;
-  printf("set rel:%d\n", releaseIncrement);
 }
 
 void ADSR::setSustainLevel(int level) { sustainLevel = level; }
