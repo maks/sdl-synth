@@ -46,11 +46,8 @@ void TinySynth::generateWaves(uint8_t *byte_stream, int len) {
 }
 
 void TinySynth::envelope_gate(bool on) {
-  char state = on ? 0 : 6;
   for (int h = 0; h < HARMONICS; h++) {
-    adsr_state[h] = state;
-
-    adsr.gate(state);
+    adsr.gate(on);
   }
 }
 

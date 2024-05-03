@@ -54,10 +54,11 @@ void ADSR::setReleaseRate(int duration) {
 void ADSR::setSustainLevel(int level) { sustainLevel = level; }
 
 void ADSR::gate(bool gate) {
-  if (gate)
+  if (gate) {
     state = env_attack;
-  else if (state != env_idle)
+  } else if (state != env_idle) {
     state = env_release;
+  }
 }
 
 void ADSR::reset() {

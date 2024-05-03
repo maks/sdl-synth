@@ -49,14 +49,6 @@ public:
   char get_note();
 
 private:
-  tinysynth_env env[HARMONICS];
-  // The current envelope settings. This represents the volume of the harmonic,
-  // and the state it is in.
-  int filt[HARMONICS] = {0, 0, 0, 0, 0, 0};
-  // make sure we start in note-off state
-  char adsr_state[HARMONICS] = {6, 6, 6, 6, 6, 6};
-  float phase_int[HARMONICS] = {0, 0, 0, 0, 0, 0};
-
   char _note = 60; /* integer representing midi notes */
 
   SineOsc osc = SineOsc();
